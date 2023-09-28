@@ -4,22 +4,25 @@
 import requests
 import json
 
-def main():
-    response = requests.post("https://www.armep.gwi.uni-muenchen.de/api/documents")
+def export(url: str, extension: str, method):
+    response = method(url % extension)
     if (response.status_code >= 400):
         print("Failed document import with status code %s" % response.status_code)
         return
-    with open("./data/documents.json", "w") as file:
+    with open("./data/" + extension + ".json", "w") as file:
         response_json = json.loads(response.content.decode("utf-8"))
         file.write(json.dumps(response_json, indent=2))
-        
-    response = requests.post("https://www.armep.gwi.uni-muenchen.de/api/tokens")
-    if (response.status_code >= 400):
-        print("Failed token import with status code %s" % response.status_code)
-        return
-    with open("./data/tokens.json", "w") as file:
-        file.write(response.content.decode("utf-8"))
-        
+
+def main():
+    url_template = "https://www.armep.gwi.uni-muenchen.de/api/%s"
+    extended_url_template = url_template % "index.php/%s"
+    token_url_template = extended_url_template % "token_list?index=%s"
+    
+    export(url_template, "documents", requests.post)
+    export(token_url_template, "translations", requests.get)
+    export(token_url_template, "transliterations", requests.get)
+    export(token_url_template, "lemmata", requests.get)
+    export(token_url_template, "signs", requests.get)
     
 if __name__ == "__main__":
     main()
