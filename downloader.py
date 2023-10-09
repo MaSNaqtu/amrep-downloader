@@ -1,8 +1,9 @@
 # -*- coding: utf-8 -*-
 
-
 import requests
 import json
+import zipfile
+import os
 
 def export(url: str, extension: str, method):
     response = method(url % extension)
@@ -23,6 +24,15 @@ def main():
     export(token_url_template, "transliterations", requests.get)
     export(token_url_template, "lemmata", requests.get)
     export(token_url_template, "signs", requests.get)
+    
+    data_url = "https://www.armep.gwi.uni-muenchen.de/db_update/armep_data.zip"
+    data_response = requests.get(data_url)
+    zip_file_path = "./data/armep_data.zip"
+    open(zip_file_path, "wb").write(data_response.content)
+    with zipfile.ZipFile(zip_file_path) as zip_file:
+        zip_file.extractall("./data")
+    os.remove(zip_file_path)
+        
     
 if __name__ == "__main__":
     main()
